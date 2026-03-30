@@ -1,0 +1,80 @@
+---
+- name: Deploy capstone app
+  hosts: app_servers
+  become: yes
+  vars:
+    docker_image: "tawa123/capstone-app"
+    docker_tag: "latest"
+    container_name: "capstone-app"
+
+  tasks:
+    - name: Install dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+        state: present
+        update_cache: yes
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repo
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: Install Docker Python SDK
+      pip:
+        name: docker
+        state: present
+
+    - name: Pull Docker image
+      docker_image:
+        name: "{{ docker_image }}:{{ docker_tag }}"
+        source: pull
+
+    - name: Stop old container
+      docker_container:
+        name: "{{ container_name }}"
+        state: absent
+      ignore_errors: yes
+
+    - name: Start new container
+      docker_container:
+        name: "{{ container_name }}"
+        image: "{{ docker_image }}:{{ docker_tag }}"
+        state: started
+        ports:
+          - "80:5000"
+        restart_policy: always
+
+    - name: Copy health check script
+      copy:
+        src: health_check.sh
+        dest: /usr/local/bin/health_check.sh
+        mode: "0755"
+
+    - name: Install cron job
+      cron:
+        name: "health check"
+        minute: "*/5"
+        job: /usr/local/bin/health_check.sh
+
+    - name: Health check
+      uri:
+        url: http://localhost/health
+        status_code: 200
+      retries: 5
+      delay: 5
