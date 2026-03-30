@@ -1,4 +1,3 @@
-cat > ~/Documents/capstone-project/Jenkinsfile << 'EOF'
 pipeline {
     agent any
 
@@ -73,4 +72,3 @@ pipeline {
         }
     }
 }
-
