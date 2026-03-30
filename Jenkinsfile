@@ -1,3 +1,4 @@
+cat > ~/Documents/capstone-project/Jenkinsfile << 'EOF'
 pipeline {
     agent any
 
@@ -45,9 +46,11 @@ pipeline {
 
         stage('Provision with Terraform') {
             steps {
-                dir('terraform/environments/staging') {
-                    sh 'terraform init'
-                    sh 'terraform apply -auto-approve'
+                withCredentials([string(credentialsId: 'your-ip', variable: 'YOUR_IP')]) {
+                    dir('terraform/environments/staging') {
+                        sh 'terraform init'
+                        sh "terraform apply -auto-approve -var='your_ip=${YOUR_IP}' -var='key_name=devops-key'"
+                    }
                 }
             }
         }
@@ -70,3 +73,4 @@ pipeline {
         }
     }
 }
+
