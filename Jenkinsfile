@@ -45,15 +45,12 @@ pipeline {
         stage('Provision with Terraform') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'your-ip', variable: 'YOUR_IP'),
                     string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     dir('terraform/environments/staging') {
                         sh 'terraform init'
-                        sh 'echo "your_ip = \\"${YOUR_IP}\\"" > jenkins.tfvars'
-                        sh 'echo "key_name = \\"devops-key\\"" >> jenkins.tfvars'
-                        sh 'terraform apply -auto-approve -var-file=jenkins.tfvars'
+                        sh 'terraform apply -auto-approve -var="key_name=devops-key"'
                     }
                 }
             }

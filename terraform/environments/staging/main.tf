@@ -10,7 +10,6 @@ module "security_groups" {
   source   = "../../modules/security_groups"
   env_name = "staging"
   vpc_id   = module.vpc.vpc_id
-  your_ip  = var.your_ip
 }
 
 module "ec2" {
