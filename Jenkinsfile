@@ -51,11 +51,9 @@ pipeline {
                 ]) {
                     dir('terraform/environments/staging') {
                         sh 'terraform init'
-                        sh '''
-                            terraform apply -auto-approve \
-                              -var="your_ip=${YOUR_IP}" \
-                              -var="key_name=devops-key"
-                        '''
+                        sh 'echo "your_ip = \\"${YOUR_IP}\\"" > jenkins.tfvars'
+                        sh 'echo "key_name = \\"devops-key\\"" >> jenkins.tfvars'
+                        sh 'terraform apply -auto-approve -var-file=jenkins.tfvars'
                     }
                 }
             }
