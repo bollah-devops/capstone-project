@@ -7,5 +7,6 @@ variable "vpc_id" {
 }
 
 variable "your_ip" {
-  description = "Your IP for SSH access (x.x.x.x/32)"
+  description = "Your IP for SSH access"
+  default     = "0.0.0.0/0"
 }
