@@ -35,7 +35,6 @@ pipeline {
                     sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker buildx build --platform linux/amd64 \
-                          -t tawa123/capstone-app:${DOCKER_TAG} \
                           -t tawa123/capstone-app:latest \
                           --push .
                     '''
@@ -52,7 +51,11 @@ pipeline {
                 ]) {
                     dir('terraform/environments/staging') {
                         sh 'terraform init'
-                        sh "terraform apply -auto-approve -var='your_ip=${YOUR_IP}' -var='key_name=devops-key'"
+                        sh '''
+                            terraform apply -auto-approve \
+                              -var="your_ip=${YOUR_IP}" \
+                              -var="key_name=devops-key"
+                        '''
                     }
                 }
             }
@@ -61,7 +64,7 @@ pipeline {
         stage('Deploy with Ansible') {
             steps {
                 dir('ansible') {
-                    sh "ansible-playbook -i inventory.ini playbook.yml -e docker_tag=${DOCKER_TAG}"
+                    sh 'ansible-playbook -i inventory.ini playbook.yml'
                 }
             }
         }
