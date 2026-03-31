@@ -45,7 +45,11 @@ pipeline {
 
         stage('Provision with Terraform') {
             steps {
-                withCredentials([string(credentialsId: 'your-ip', variable: 'YOUR_IP')]) {
+                withCredentials([
+                    string(credentialsId: 'your-ip', variable: 'YOUR_IP'),
+                    string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
                     dir('terraform/environments/staging') {
                         sh 'terraform init'
                         sh "terraform apply -auto-approve -var='your_ip=${YOUR_IP}' -var='key_name=devops-key'"
@@ -65,7 +69,7 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline succeeded - capstone app is live at http://3.209.56.172/health"
+            echo "Pipeline succeeded - capstone app is live at http://98.83.39.151/health"
         }
         failure {
             echo "Pipeline failed - check logs above"
