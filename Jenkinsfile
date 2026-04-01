@@ -58,8 +58,20 @@ pipeline {
 
         stage('Deploy with Ansible') {
             steps {
-                dir('ansible') {
-                    sh 'ansible-playbook -i inventory.ini playbook.yml'
+                withCredentials([
+                    string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    dir('ansible') {
+                        sh '''
+                            APP_IP=$(cd ../terraform/environments/staging && terraform output -raw app_server_ip)
+                            echo "[app_servers]" > inventory.ini
+                            echo "$APP_IP ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/devops-key.pem" >> inventory.ini
+                            sleep 30
+                            ssh-keyscan -H $APP_IP >> ~/.ssh/known_hosts
+                            ansible-playbook -i inventory.ini playbook.yml
+                        '''
+                    }
                 }
             }
         }
@@ -67,7 +79,7 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline succeeded - capstone app is live at http://98.83.39.151/health"
+            echo "Pipeline succeeded - capstone app is live"
         }
         failure {
             echo "Pipeline failed - check logs above"
